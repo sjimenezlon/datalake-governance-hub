@@ -57,25 +57,22 @@ export default function Home() {
           resClean,
           resRaw,
         ] = await Promise.all([
-          supabase.schema('gold').from('ventas_por_ciudad').select('*'),
-          supabase.schema('gold').from('ventas_por_producto').select('*'),
-          supabase.schema('gold').from('data_catalog').select('*'),
+          supabase.from('gold_ventas_por_ciudad').select('*'),
+          supabase.from('gold_ventas_por_producto').select('*'),
+          supabase.from('gold_data_catalog').select('*'),
           supabase
-            .schema('audit')
-            .from('access_log')
+            .from('audit_access_log')
             .select('*')
             .order('timestamp', { ascending: false })
             .limit(50),
-          supabase.schema('gold').from('estado_sensores').select('*'),
+          supabase.from('gold_estado_sensores').select('*'),
           supabase.from('lake_users').select('*'),
           supabase
-            .schema('silver')
-            .from('ventas_clean')
+            .from('silver_ventas_clean')
             .select('*')
             .order('fecha', { ascending: true }),
           supabase
-            .schema('bronze')
-            .from('ventas_raw')
+            .from('bronze_ventas_raw')
             .select('*')
             .order('ingested_at', { ascending: true }),
         ])
