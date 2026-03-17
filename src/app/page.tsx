@@ -14,9 +14,15 @@ import type {
   VentaClean,
   VentaRaw,
 } from '@/lib/supabase'
+import QualityTab from '@/components/QualityTab'
+import LineageTab from '@/components/LineageTab'
+import CompareTab from '@/components/CompareTab'
 
 const TABS = [
   { key: 'dashboard', label: 'Dashboard Gold', icon: '📊' },
+  { key: 'compare', label: 'Bronze vs Silver', icon: '🔄' },
+  { key: 'quality', label: 'Calidad', icon: '✅' },
+  { key: 'lineage', label: 'Linaje', icon: '🔗' },
   { key: 'bronze', label: 'Bronze (Raw)', icon: '🥉' },
   { key: 'silver', label: 'Silver (Clean)', icon: '🥈' },
   { key: 'catalog', label: 'Catálogo', icon: '📋' },
@@ -323,6 +329,21 @@ export default function Home() {
               </p>
             </div>
           </div>
+        )}
+
+        {/* ======================== COMPARE ======================== */}
+        {activeTab === 'compare' && (
+          <CompareTab ventasRaw={ventasRaw} ventasClean={ventasClean} />
+        )}
+
+        {/* ======================== QUALITY ======================== */}
+        {activeTab === 'quality' && (
+          <QualityTab ventasRaw={ventasRaw} ventasClean={ventasClean} catalog={catalog} />
+        )}
+
+        {/* ======================== LINEAGE ======================== */}
+        {activeTab === 'lineage' && (
+          <LineageTab ventasRaw={ventasRaw} ventasClean={ventasClean} ventasCiudad={ventasCiudad} />
         )}
 
         {/* ======================== BRONZE ======================== */}
