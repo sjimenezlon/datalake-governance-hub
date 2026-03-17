@@ -1,6 +1,7 @@
 'use client'
 
 import type { VentaRaw, VentaClean } from '@/lib/supabase'
+import PedagogicalNote from './PedagogicalNote'
 
 interface Props {
   ventasRaw: VentaRaw[]
@@ -33,13 +34,35 @@ export default function CompareTab({ ventasRaw, ventasClean }: Props) {
         </span>
       </div>
 
-      <div className="bg-cyan-950/20 border border-cyan-900/30 rounded-xl p-4 mb-6">
-        <p className="text-cyan-300 text-sm">
-          <strong>Antes y después.</strong> Esta vista muestra exactamente qué cambió entre Bronze (dato crudo) y Silver
-          (dato limpio). Los registros rechazados se resaltan en rojo. Los campos transformados se muestran con el cambio
-          específico.
-        </p>
-      </div>
+      <PedagogicalNote title="¿Cómo leer esta comparación?" type="concept" defaultOpen={true}>
+        <p>Cada tarjeta muestra un registro Bronze (izquierda) junto a su versión Silver (derecha). Así puedes ver <strong>exactamente qué cambió</strong> en la transformación:</p>
+        <ul className="list-disc ml-5 mt-2 space-y-1 text-xs">
+          <li><span className="text-emerald-400 font-bold">Verde &quot;LIMPIO&quot;</span> — el registro pasó sin modificaciones, quality_score = 1.00</li>
+          <li><span className="text-amber-400 font-bold">Amarillo &quot;N transformaciones&quot;</span> — se corrigieron campos (vendedor vacío, ciudad normalizada)</li>
+          <li><span className="text-red-400 font-bold">Rojo &quot;RECHAZADO&quot;</span> — el registro NO pasó a Silver por fallar las reglas de calidad</li>
+          <li>Los campos problemáticos en Bronze aparecen resaltados en <span className="text-red-400">rojo</span></li>
+          <li>Los campos corregidos en Silver aparecen en <span className="text-emerald-400">verde</span></li>
+        </ul>
+      </PedagogicalNote>
+
+      <PedagogicalNote title="¿Por qué es importante esta comparación?" type="governance" defaultOpen={false}>
+        <p>En gobernanza de datos, la <strong>trazabilidad de transformaciones</strong> es un requisito. Debes poder demostrar:</p>
+        <ul className="list-disc ml-5 mt-2 space-y-1 text-xs">
+          <li>Qué reglas de limpieza se aplicaron y por qué</li>
+          <li>Qué registros fueron rechazados y el motivo exacto</li>
+          <li>Que los datos Silver son una representación fiel (pero limpia) de Bronze</li>
+        </ul>
+        <p className="mt-2 text-slate-400 text-xs">Marco de referencia: DAMA-DMBOK2, Área 6 (Integración e Interoperabilidad) y Área 11 (Calidad de Datos).</p>
+      </PedagogicalNote>
+
+      <PedagogicalNote title="Encuentra los problemas del registro #4" type="exercise" defaultOpen={false}>
+        <p>Busca la tarjeta con etiqueta roja <strong>&quot;RECHAZADO&quot;</strong>. Identifica:</p>
+        <ol className="list-decimal ml-5 mt-2 space-y-1 text-xs">
+          <li>¿Qué campo tiene valor NULL? ¿Por qué eso bloquea el ingreso a Silver?</li>
+          <li>¿Qué campo tiene string vacío? ¿Cómo lo habría corregido Silver si no fuera rechazado?</li>
+          <li>¿Qué campo tiene inconsistencia de formato? ¿Qué función SQL lo normaliza?</li>
+        </ol>
+      </PedagogicalNote>
 
       <div className="space-y-4">
         {comparisons.map(({ raw, rawData, silver, issues, rejected }) => (

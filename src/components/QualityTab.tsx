@@ -1,6 +1,7 @@
 'use client'
 
 import type { VentaClean, VentaRaw, CatalogEntry } from '@/lib/supabase'
+import PedagogicalNote from './PedagogicalNote'
 
 interface Props {
   ventasRaw: VentaRaw[]
@@ -46,6 +47,26 @@ export default function QualityTab({ ventasRaw, ventasClean, catalog }: Props) {
           GOBERNANZA
         </span>
       </div>
+
+      <PedagogicalNote title="Las 6 dimensiones de calidad — DAMA-DMBOK2" type="concept" defaultOpen={true}>
+        <p>El framework DAMA-DMBOK2 define 6 dimensiones de calidad de datos. Todas están implementadas aquí:</p>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
+          <div className="bg-slate-900/50 rounded p-2"><span className="text-amber-400 font-bold text-xs">Completitud</span><p className="text-[10px] text-slate-400">¿Faltan valores? → cantidad NOT NULL</p></div>
+          <div className="bg-slate-900/50 rounded p-2"><span className="text-amber-400 font-bold text-xs">Validez</span><p className="text-[10px] text-slate-400">¿Valores posibles? → cantidad &gt; 0</p></div>
+          <div className="bg-slate-900/50 rounded p-2"><span className="text-amber-400 font-bold text-xs">Consistencia</span><p className="text-[10px] text-slate-400">¿Mismo formato? → INITCAP(ciudad)</p></div>
+          <div className="bg-slate-900/50 rounded p-2"><span className="text-amber-400 font-bold text-xs">Unicidad</span><p className="text-[10px] text-slate-400">¿Duplicados? → Deduplicación por ID</p></div>
+          <div className="bg-slate-900/50 rounded p-2"><span className="text-amber-400 font-bold text-xs">Oportunidad</span><p className="text-[10px] text-slate-400">¿Datos frescos? → freshness en catálogo</p></div>
+          <div className="bg-slate-900/50 rounded p-2"><span className="text-amber-400 font-bold text-xs">Confiabilidad</span><p className="text-[10px] text-slate-400">¿Puedo confiar? → quality_score</p></div>
+        </div>
+      </PedagogicalNote>
+
+      <PedagogicalNote title="¿Cómo leer las métricas?" type="tip" defaultOpen={false}>
+        <ul className="list-disc ml-5 space-y-1 text-xs">
+          <li><strong>Tasa de Aprobación</strong>: % de registros que pasan de Bronze a Silver. Si baja = el sistema fuente envía peores datos.</li>
+          <li><strong>Quality Score</strong>: promedio de confiabilidad por registro (1.00 = perfecto, 0.70 = dato con problema corregido).</li>
+          <li><strong>Rechazados</strong>: registros que NO pasaron. Si crece = escalar al Data Owner del dominio.</li>
+        </ul>
+      </PedagogicalNote>
 
       {/* Overview Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
@@ -191,13 +212,14 @@ export default function QualityTab({ ventasRaw, ventasClean, catalog }: Props) {
         </div>
       </div>
 
-      <div className="mt-6 bg-emerald-950/20 border border-emerald-900/30 rounded-xl p-4">
-        <p className="text-emerald-300 text-sm">
-          <strong>Dimensiones de calidad (DAMA-DMBOK2):</strong> Completitud (sin nulos), Validez (rangos correctos),
-          Consistencia (formatos uniformes), Unicidad (sin duplicados), Oportunidad (datos frescos) y Confiabilidad
-          (quality score). Este dashboard monitorea las 6 dimensiones en tiempo real.
-        </p>
-      </div>
+      <PedagogicalNote title="¿Qué significa cada severidad?" type="exercise" defaultOpen={false}>
+        <ul className="list-disc ml-5 space-y-1 text-xs">
+          <li><span className="text-red-400 font-bold">CRÍTICO (rojo)</span>: bloquea el registro — no pasa a Silver. Ej: cantidad NULL.</li>
+          <li><span className="text-amber-400 font-bold">WARNING (amarillo)</span>: se corrige automáticamente pero reduce quality_score. Ej: vendedor vacío → &quot;Sin asignar&quot;.</li>
+          <li><span className="text-blue-400 font-bold">INFO (azul)</span>: se normaliza sin impacto en calidad. Ej: INITCAP en ciudad.</li>
+        </ul>
+        <p className="mt-2 text-slate-400 text-xs">Pregunta: si agregaras una nueva regla de calidad, ¿qué dimensión DAMA cubriría? ¿Sería crítica o warning?</p>
+      </PedagogicalNote>
     </div>
   )
 }

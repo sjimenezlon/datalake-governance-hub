@@ -17,6 +17,7 @@ import type {
 import QualityTab from '@/components/QualityTab'
 import LineageTab from '@/components/LineageTab'
 import CompareTab from '@/components/CompareTab'
+import PedagogicalNote from '@/components/PedagogicalNote'
 
 const TABS = [
   { key: 'dashboard', label: 'Dashboard Gold', icon: '📊' },
@@ -38,6 +39,7 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState<TabKey>('dashboard')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [welcomeOpen, setWelcomeOpen] = useState(true)
 
   // Data states
   const [ventasCiudad, setVentasCiudad] = useState<VentasPorCiudad[]>([])
@@ -204,6 +206,46 @@ export default function Home() {
         </div>
       </nav>
 
+      {/* WELCOME BANNER */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-6">
+        <div className="bg-gradient-to-r from-blue-950/40 via-indigo-950/40 to-emerald-950/40 border border-blue-900/40 rounded-xl overflow-hidden">
+          <button
+            onClick={() => setWelcomeOpen(!welcomeOpen)}
+            className="w-full px-5 py-3 flex items-center justify-between text-left hover:bg-white/5 transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">🎓</span>
+              <span className="text-sm font-semibold text-blue-300">
+                Bienvenido al Data Lake Governance Hub — esta plataforma es un laboratorio real de Gestión y Gobernanza de Datos
+              </span>
+            </div>
+            <span className="text-slate-500 text-xs whitespace-nowrap ml-2">{welcomeOpen ? '▲ Ocultar' : '▼ Mostrar'}</span>
+          </button>
+          {welcomeOpen && (
+            <div className="px-5 pb-5 text-sm text-slate-300 leading-relaxed space-y-3">
+              <p>
+                Aquí puedes explorar cómo funciona un <strong className="text-blue-300">Data Lake con arquitectura Medallion</strong> (Bronze → Silver → Gold)
+                conectado a una base de datos <strong className="text-emerald-300">PostgreSQL real</strong> en Supabase. Todos los datos que ves son consultados en vivo.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mt-2">
+                <div className="bg-slate-900/50 rounded-lg p-3 border border-slate-800/50">
+                  <p className="text-xs font-bold text-emerald-400 uppercase tracking-wide mb-1">Capas de datos</p>
+                  <p className="text-xs text-slate-400"><strong>Dashboard Gold</strong> — KPIs de negocio desde vistas materializadas. <strong>Bronze</strong> — datos crudos inmutables. <strong>Silver</strong> — datos limpios y tipados.</p>
+                </div>
+                <div className="bg-slate-900/50 rounded-lg p-3 border border-slate-800/50">
+                  <p className="text-xs font-bold text-purple-400 uppercase tracking-wide mb-1">Calidad y linaje</p>
+                  <p className="text-xs text-slate-400"><strong>Bronze vs Silver</strong> — compara antes/después. <strong>Calidad</strong> — métricas de completitud. <strong>Linaje</strong> — trazabilidad de transformaciones.</p>
+                </div>
+                <div className="bg-slate-900/50 rounded-lg p-3 border border-slate-800/50">
+                  <p className="text-xs font-bold text-cyan-400 uppercase tracking-wide mb-1">Gobernanza</p>
+                  <p className="text-xs text-slate-400"><strong>Catálogo</strong> — metadatos obligatorios. <strong>Sensores</strong> — detección de anomalías. <strong>Auditoría</strong> — log de accesos. <strong>Usuarios</strong> — RBAC.</p>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* MAIN CONTENT */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
         {/* ======================== DASHBOARD (GOLD) ======================== */}
@@ -215,6 +257,32 @@ export default function Home() {
                 CAPA GOLD
               </span>
             </div>
+
+            <PedagogicalNote title="¿Qué es la Capa Gold?" type="concept" defaultOpen={false}>
+              <p>
+                La capa <strong>Gold</strong> contiene <strong>vistas materializadas</strong> (materialized views) — son consultas SQL pre-calculadas
+                que PostgreSQL almacena como tablas físicas. En lugar de ejecutar JOINs y agregaciones costosas cada vez que un analista consulta,
+                el resultado ya está listo.
+              </p>
+              <p className="mt-2">
+                En este proyecto, <code className="bg-slate-800 px-1 rounded">gold_ventas_por_ciudad</code> y{' '}
+                <code className="bg-slate-800 px-1 rounded">gold_ventas_por_producto</code> son vistas materializadas que agregan datos
+                desde <code className="bg-slate-800 px-1 rounded">silver_ventas_clean</code>. El Dashboard <strong>solo</strong> lee de Gold,
+                nunca toca Bronze ni Silver directamente.
+              </p>
+            </PedagogicalNote>
+
+            <PedagogicalNote title="Separación de capas" type="governance" defaultOpen={false}>
+              <p>
+                Un principio fundamental de gobernanza es que <strong>los analistas de negocio nunca deben acceder a la capa Bronze</strong>.
+                Bronze contiene datos crudos con errores, duplicados y formatos inconsistentes. Si un analista construye un reporte desde Bronze,
+                los números estarán mal.
+              </p>
+              <p className="mt-2">
+                La separación Bronze → Silver → Gold garantiza que cada capa tenga un propósito claro:
+                Bronze = inmutabilidad, Silver = calidad, Gold = consumo de negocio.
+              </p>
+            </PedagogicalNote>
 
             {/* KPI Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -241,6 +309,30 @@ export default function Home() {
                 <p className="text-slate-600 text-xs mt-1">Bronze &rarr; Silver (filtrados)</p>
               </div>
             </div>
+
+            <PedagogicalNote title="Observa el quality score de Medellín" type="exercise" defaultOpen={false}>
+              <p>
+                Mira la tabla &quot;Ventas por Ciudad&quot; abajo. ¿El quality score de Medellín es 100%? Probablemente no.
+                ¿Por qué no es perfecto si los datos ya pasaron por Silver?
+              </p>
+              <p className="mt-2">
+                <strong>Pista:</strong> Ve a la tab <strong>Bronze vs Silver</strong> y busca registros de Medellín.
+                ¿Algún registro tenía un vendedor vacío? Cuando Silver reemplaza un valor faltante con &quot;Sin asignar&quot; usando COALESCE,
+                el quality_score baja a 0.85 porque el dato original era incompleto. La limpieza no elimina la evidencia del problema.
+              </p>
+            </PedagogicalNote>
+
+            <PedagogicalNote title="KPI 4: Registros Rechazados" type="why" defaultOpen={false}>
+              <p>
+                El cuarto KPI muestra cuántos registros de Bronze <strong>no llegaron a Silver</strong>. Esto no es un error del pipeline
+                — es una decisión de gobernanza. Un registro con <code className="bg-slate-800 px-1 rounded">cantidad = NULL</code> no
+                puede participar en cálculos de ingreso, así que se rechaza.
+              </p>
+              <p className="mt-2">
+                En producción, este número genera alertas: si de repente el 50% de los registros son rechazados,
+                hay un problema en el sistema fuente (SAP ERP) que debe investigarse.
+              </p>
+            </PedagogicalNote>
 
             {/* Tables side by side */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -321,13 +413,12 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="mt-6 bg-blue-950/30 border border-blue-900/50 rounded-xl p-4">
-              <p className="text-blue-300 text-sm">
-                <strong>Nota pedagógica:</strong> Este dashboard SOLO consume datos de la capa <strong>Gold</strong>{' '}
-                (vistas materializadas). Nunca accede directamente a Bronze ni Silver. Así funciona la separación de
-                capas en un Data Lake real.
+            <PedagogicalNote title="Este dashboard SOLO consume datos de la capa Gold" type="concept" defaultOpen={true}>
+              <p>
+                Este dashboard SOLO consume datos de la capa <strong>Gold</strong> (vistas materializadas).
+                Nunca accede directamente a Bronze ni Silver. Así funciona la separación de capas en un Data Lake real.
               </p>
-            </div>
+            </PedagogicalNote>
           </div>
         )}
 
@@ -357,13 +448,58 @@ export default function Home() {
               <span className="text-slate-500 text-sm">{ventasRaw.length} registros</span>
             </div>
 
-            <div className="bg-amber-950/20 border border-amber-900/30 rounded-xl p-4 mb-6">
-              <p className="text-amber-300 text-sm">
-                <strong>Bronze = Inmutable.</strong> Estos son los datos tal como llegaron del sistema fuente (SAP ERP).
-                Observa los errores intencionales: cantidades <code className="bg-slate-800 px-1 rounded">null</code>,
-                ciudades en minúsculas, vendedores vacíos. Nunca se modifican aquí — la limpieza ocurre en Silver.
+            <PedagogicalNote title="¿Qué es Bronze?" type="concept" defaultOpen={true}>
+              <p>
+                Bronze es la <strong>zona de aterrizaje</strong> (landing zone) del Data Lake. Los datos llegan aquí exactamente como
+                los envía el sistema fuente, sin ninguna transformación. Se almacenan en formato <strong>JSONB</strong> (schema-on-read),
+                lo que significa que no necesitan un esquema predefinido — PostgreSQL los guarda como JSON binario y puedes consultarlos después.
               </p>
-            </div>
+              <p className="mt-2">
+                Cada registro tiene metadatos de ingestión: <code className="bg-slate-800 px-1 rounded">source_system</code>,{' '}
+                <code className="bg-slate-800 px-1 rounded">ingested_at</code>,{' '}
+                <code className="bg-slate-800 px-1 rounded">file_name</code>. Estos metadatos son esenciales para la trazabilidad.
+              </p>
+            </PedagogicalNote>
+
+            <PedagogicalNote title="¿Por qué nunca modificar Bronze?" type="why" defaultOpen={false}>
+              <p>
+                Bronze es <strong>inmutable</strong> por tres razones críticas:
+              </p>
+              <ul className="list-disc list-inside mt-2 space-y-1">
+                <li><strong>Reprocesamiento:</strong> si descubres un bug en tu pipeline Silver, puedes volver a correrlo desde Bronze sin pedir los datos de nuevo al sistema fuente.</li>
+                <li><strong>Evidencia legal:</strong> en auditorías regulatorias (Habeas Data, SOX), necesitas demostrar qué datos recibiste originalmente, sin alteraciones.</li>
+                <li><strong>Debugging:</strong> cuando un número no cuadra en Gold, puedes rastrear el problema hasta el dato original en Bronze.</li>
+              </ul>
+            </PedagogicalNote>
+
+            <PedagogicalNote title="Encuentra los 3 errores en el registro #4" type="exercise" defaultOpen={false}>
+              <p>
+                Busca el registro con <strong>ID 4</strong> en la lista de abajo. Tiene al menos 3 problemas de calidad de datos:
+              </p>
+              <ol className="list-decimal list-inside mt-2 space-y-1">
+                <li><code className="bg-slate-800 px-1 rounded">cantidad</code> es <strong>NULL</strong> — no se puede calcular ingreso sin cantidad</li>
+                <li><code className="bg-slate-800 px-1 rounded">vendedor</code> es un <strong>string vacío</strong> (&quot;&quot;) — no se sabe quién realizó la venta</li>
+                <li><code className="bg-slate-800 px-1 rounded">ciudad</code> no está <strong>normalizada</strong> — puede estar en minúsculas o con formato inconsistente</li>
+              </ol>
+              <p className="mt-2">
+                ¿Qué pasa con este registro cuando llega a Silver? Ve a la tab <strong>Silver</strong> y busca el ID 4...
+              </p>
+            </PedagogicalNote>
+
+            <PedagogicalNote title="Metadatos de ingestión" type="governance" defaultOpen={false}>
+              <p>
+                Cada registro Bronze incluye metadatos que responden preguntas clave de gobernanza:
+              </p>
+              <ul className="list-disc list-inside mt-2 space-y-1">
+                <li><code className="bg-slate-800 px-1 rounded">source_system</code> — ¿De dónde vino? (SAP ERP, IoT gateway, etc.)</li>
+                <li><code className="bg-slate-800 px-1 rounded">ingested_at</code> — ¿Cuándo llegó al Lake?</li>
+                <li><code className="bg-slate-800 px-1 rounded">file_name</code> — ¿De qué archivo se extrajo?</li>
+                <li><code className="bg-slate-800 px-1 rounded">batch_id</code> — ¿En qué lote de carga entró? Permite hacer rollback de un lote completo</li>
+              </ul>
+              <p className="mt-2">
+                Sin estos metadatos, no puedes hacer linaje (trazar un dato desde Gold hasta su origen) ni auditar el pipeline.
+              </p>
+            </PedagogicalNote>
 
             <div className="space-y-3">
               {ventasRaw.map((r) => (
@@ -418,16 +554,55 @@ export default function Home() {
               <span className="text-slate-500 text-sm">{ventasClean.length} registros (de {ventasRaw.length} en Bronze)</span>
             </div>
 
-            <div className="bg-indigo-950/20 border border-indigo-900/30 rounded-xl p-4 mb-6">
-              <p className="text-indigo-300 text-sm">
-                <strong>Bronze &rarr; Silver:</strong> Los datos fueron limpiados, tipados, deduplicados y validados.
-                Registros con <code className="bg-slate-800 px-1 rounded">cantidad = null</code> fueron rechazados.
-                Ciudades normalizadas con <code className="bg-slate-800 px-1 rounded">INITCAP()</code>.
-                Vendedores vacíos reemplazados por &ldquo;Sin asignar&rdquo; con quality_score reducido.
-                La columna <code className="bg-slate-800 px-1 rounded">ingreso_total</code> es un campo calculado
-                (GENERATED ALWAYS AS).
+            <PedagogicalNote title="¿Qué es Silver?" type="concept" defaultOpen={true}>
+              <p>
+                Silver es la capa de datos <strong>limpios, tipados y validados</strong>. A diferencia de Bronze (JSONB sin esquema),
+                Silver tiene columnas con tipos estrictos: <code className="bg-slate-800 px-1 rounded">DATE</code>,{' '}
+                <code className="bg-slate-800 px-1 rounded">INTEGER</code>, <code className="bg-slate-800 px-1 rounded">NUMERIC(12,2)</code>.
+                Si un dato no cumple las reglas de calidad, no entra a Silver.
               </p>
-            </div>
+            </PedagogicalNote>
+
+            <PedagogicalNote title="Las 6 transformaciones Bronze → Silver" type="concept" defaultOpen={false}>
+              <p>
+                El pipeline de Silver aplica estas transformaciones:
+              </p>
+              <ol className="list-decimal list-inside mt-2 space-y-1">
+                <li><strong>Type casting:</strong> <code className="bg-slate-800 px-1 rounded">(raw_data-&gt;&gt;&apos;cantidad&apos;)::INTEGER</code> — de texto JSON a entero</li>
+                <li><strong>COALESCE:</strong> <code className="bg-slate-800 px-1 rounded">COALESCE(vendedor, &apos;Sin asignar&apos;)</code> — valores nulos/vacíos reciben un default</li>
+                <li><strong>INITCAP:</strong> <code className="bg-slate-800 px-1 rounded">INITCAP(ciudad)</code> — &quot;medellín&quot; → &quot;Medellín&quot;, normalización</li>
+                <li><strong>Filtrado:</strong> <code className="bg-slate-800 px-1 rounded">WHERE cantidad IS NOT NULL</code> — registros inválidos no pasan</li>
+                <li><strong>Quality score:</strong> se calcula con reglas (vendedor presente = 1.0, ausente = 0.85)</li>
+                <li><strong>Generated columns:</strong> <code className="bg-slate-800 px-1 rounded">ingreso_total = cantidad * precio_unit</code></li>
+              </ol>
+            </PedagogicalNote>
+
+            <PedagogicalNote title="El campo ingreso_total es GENERATED ALWAYS AS" type="tip" defaultOpen={false}>
+              <p>
+                La columna <code className="bg-slate-800 px-1 rounded">ingreso_total</code> no se inserta manualmente — PostgreSQL la calcula
+                automáticamente cada vez que <code className="bg-slate-800 px-1 rounded">cantidad</code> o{' '}
+                <code className="bg-slate-800 px-1 rounded">precio_unit</code> cambian:
+              </p>
+              <p className="mt-2">
+                <code className="bg-slate-800 px-1.5 py-0.5 rounded text-emerald-300">ingreso_total NUMERIC(15,2) GENERATED ALWAYS AS (cantidad * precio_unit) STORED</code>
+              </p>
+              <p className="mt-2">
+                Esto garantiza consistencia: es imposible que ingreso_total no coincida con cantidad x precio.
+              </p>
+            </PedagogicalNote>
+
+            <PedagogicalNote title="¿Por qué hay menos registros en Silver que en Bronze?" type="exercise" defaultOpen={false}>
+              <p>
+                Bronze tiene <strong>{ventasRaw.length}</strong> registros pero Silver tiene <strong>{ventasClean.length}</strong>.
+                ¿Qué pasó con {rejectedCount === 1 ? 'el registro faltante' : `los ${rejectedCount} registros faltantes`}?
+              </p>
+              <p className="mt-2">
+                Ve a la tab <strong>Bronze</strong> y busca registros marcados con ⚠. Los que tienen{' '}
+                <code className="bg-slate-800 px-1 rounded">cantidad = NULL</code> fueron rechazados porque el pipeline Silver
+                tiene la regla <code className="bg-slate-800 px-1 rounded">WHERE cantidad IS NOT NULL</code>.
+                No es un error — es gobernanza de calidad: mejor rechazar un dato malo que contaminar los reportes de Gold.
+              </p>
+            </PedagogicalNote>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
               <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 text-center">
@@ -511,13 +686,53 @@ export default function Home() {
               <span className="text-slate-500 text-sm">{catalog.length} datasets registrados</span>
             </div>
 
-            <div className="bg-purple-950/20 border border-purple-900/30 rounded-xl p-4 mb-6">
-              <p className="text-purple-300 text-sm">
-                <strong>El catálogo es obligatorio.</strong> Todo dataset que entra al Lake debe tener: dueño,
-                descripción, clasificación de sensibilidad, indicador de PII, score de calidad y frecuencia de
-                actualización. Sin esto, el Data Lake se convierte en un Data Swamp.
+            <PedagogicalNote title="¿Por qué es obligatorio el catálogo?" type="governance" defaultOpen={true}>
+              <p>
+                Sin un catálogo, el Data Lake se convierte en un <strong>Data Swamp</strong> (pantano de datos). Un Data Swamp es un
+                Lake donde nadie sabe qué datos hay, quién los puso, qué significan ni si se pueden confiar.
               </p>
-            </div>
+              <p className="mt-2">
+                El catálogo responde 5 preguntas esenciales: <strong>¿Qué hay?</strong> (tabla y descripción),{' '}
+                <strong>¿De quién es?</strong> (owner/steward), <strong>¿Qué tan sensible es?</strong> (clasificación),{' '}
+                <strong>¿Qué tan fresco?</strong> (freshness), <strong>¿Qué tan bueno?</strong> (quality score).
+              </p>
+            </PedagogicalNote>
+
+            <PedagogicalNote title="Clasificación de datos" type="concept" defaultOpen={false}>
+              <p>
+                Cada dataset tiene una clasificación de sensibilidad que determina quién puede accederlo:
+              </p>
+              <ul className="list-disc list-inside mt-2 space-y-1">
+                <li><strong className="text-slate-300">Public:</strong> datos abiertos, cualquiera puede verlos (ej. catálogo de productos publicado)</li>
+                <li><strong className="text-blue-400">Internal:</strong> uso interno de la organización, no sale afuera (ej. métricas de ventas agregadas)</li>
+                <li><strong className="text-red-400">Confidential:</strong> acceso restringido, contiene información sensible del negocio (ej. precios de costo, márgenes)</li>
+                <li><strong className="text-purple-400">Restricted:</strong> máxima protección, datos regulados por ley (ej. datos personales bajo Habeas Data)</li>
+              </ul>
+            </PedagogicalNote>
+
+            <PedagogicalNote title="PII — Información Personal Identificable" type="concept" defaultOpen={false}>
+              <p>
+                <strong>PII</strong> (Personally Identifiable Information) son datos que identifican a una persona: nombre, cédula, email, dirección, teléfono.
+                En Colombia, la <strong>Ley 1581 de 2012 (Habeas Data)</strong> obliga a proteger estos datos con medidas técnicas y organizativas.
+              </p>
+              <p className="mt-2">
+                En este Data Lake, las tablas marcadas con <span className="px-2 py-0.5 bg-red-900/50 text-red-400 rounded text-xs font-medium">PII</span> requieren
+                enmascaramiento (ver tab Usuarios). Un NIT como <code className="bg-slate-800 px-1 rounded">900123456</code> se muestra como{' '}
+                <code className="bg-slate-800 px-1 rounded">900****56</code> a roles sin autorización.
+              </p>
+            </PedagogicalNote>
+
+            <PedagogicalNote title="La barra de calidad cambia de color" type="tip" defaultOpen={false}>
+              <p>
+                La barra de calidad de cada dataset usa un semáforo:
+              </p>
+              <ul className="list-disc list-inside mt-2 space-y-1">
+                <li><span className="text-emerald-400 font-bold">Verde</span> (&ge;95%) — excelente calidad, listo para consumo</li>
+                <li><span className="text-blue-400 font-bold">Azul</span> (&ge;90%) — buena calidad, aceptable para reportes</li>
+                <li><span className="text-amber-400 font-bold">Ámbar</span> (&ge;85%) — calidad media, investigar campos faltantes</li>
+                <li><span className="text-red-400 font-bold">Rojo</span> (&lt;85%) — calidad baja, no usar en decisiones críticas</li>
+              </ul>
+            </PedagogicalNote>
 
             <div className="grid gap-4">
               {catalog.map((c) => (
@@ -615,6 +830,44 @@ export default function Home() {
               </span>
             </div>
 
+            <PedagogicalNote title="Detección de anomalías en IoT" type="concept" defaultOpen={true}>
+              <p>
+                El pipeline de sensores no solo almacena lecturas — también <strong>detecta anomalías</strong> automáticamente.
+                Una anomalía es un valor que es físicamente imposible o estadísticamente improbable para el tipo de medición.
+              </p>
+              <p className="mt-2">
+                Por ejemplo, un sensor de temperatura en Medellín que reporta -40°C o 200°C se marca como anómalo.
+                El campo <code className="bg-slate-800 px-1 rounded">tiene_anomalias</code> en la vista Gold se calcula
+                comparando lecturas contra rangos válidos definidos por tipo de sensor.
+              </p>
+            </PedagogicalNote>
+
+            <PedagogicalNote title="SEN-001 tiene anomalía. ¿Qué valor es imposible?" type="exercise" defaultOpen={false}>
+              <p>
+                Busca el sensor <strong>SEN-001</strong> en las tarjetas de abajo. Tiene el badge rojo &quot;Anomalía&quot;.
+              </p>
+              <p className="mt-2">
+                Observa sus valores: promedio, mínimo y máximo. ¿Cuál de esos valores parece imposible para el tipo de medición?
+                Si es un sensor de temperatura, ¿tendría sentido un valor negativo extremo o un pico de 150°C?
+              </p>
+              <p className="mt-2">
+                <strong>¿Cómo lo detectó el pipeline?</strong> El SQL compara cada lectura contra un rango configurable por tipo:
+                <code className="bg-slate-800 px-1 rounded ml-1">WHERE valor NOT BETWEEN rango_min AND rango_max</code>.
+                Si alguna lectura cae fuera, el sensor se marca con anomalía.
+              </p>
+            </PedagogicalNote>
+
+            <PedagogicalNote title="SEN-004 tiene batería al 45%" type="tip" defaultOpen={false}>
+              <p>
+                En producción, un sensor con batería por debajo del 50% generaría una <strong>alerta de mantenimiento</strong> automática.
+                El equipo de campo recibiría una notificación para reemplazar la batería antes de que el sensor deje de transmitir.
+              </p>
+              <p className="mt-2">
+                Los colores del badge de batería siguen la convención: <span className="text-emerald-400">verde</span> (&ge;70%),{' '}
+                <span className="text-amber-400">ámbar</span> (&ge;50%), <span className="text-red-400">rojo</span> (&lt;50%).
+              </p>
+            </PedagogicalNote>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {sensores.map((s, i) => (
                 <div
@@ -686,13 +939,53 @@ export default function Home() {
               <span className="text-slate-500 text-sm">{logs.length} registros</span>
             </div>
 
-            <div className="bg-rose-950/20 border border-rose-900/30 rounded-xl p-4 mb-6">
-              <p className="text-rose-300 text-sm">
-                <strong>Trazabilidad completa.</strong> Cada acceso al Data Lake queda registrado: quién accedió, a qué
-                tabla, qué acción realizó, cuántas filas consultó y desde qué IP. Esto es un requisito de gobernanza y
-                cumplimiento regulatorio (Habeas Data, GDPR, SOX).
+            <PedagogicalNote title="¿Por qué auditar cada acceso?" type="governance" defaultOpen={true}>
+              <p>
+                La auditoría no es opcional — es un <strong>requisito legal y regulatorio</strong>:
               </p>
-            </div>
+              <ul className="list-disc list-inside mt-2 space-y-1">
+                <li><strong>Ley 1581 de 2012 (Habeas Data Colombia):</strong> obliga a registrar quién accede a datos personales y con qué propósito</li>
+                <li><strong>GDPR (si hay datos de ciudadanos UE):</strong> requiere demostrar accountability y trazabilidad de accesos</li>
+                <li><strong>SOX (si la empresa cotiza en bolsa):</strong> los controles de acceso a datos financieros deben ser auditables</li>
+              </ul>
+              <p className="mt-2">
+                Además, la auditoría permite detectar <strong>comportamientos anómalos</strong>: ¿por qué un analista descargó 10,000 registros
+                de una tabla confidencial a las 3am? El log te da la evidencia.
+              </p>
+            </PedagogicalNote>
+
+            <PedagogicalNote title="Campos del log de auditoría" type="concept" defaultOpen={false}>
+              <p>
+                Cada entrada del log captura:
+              </p>
+              <ul className="list-disc list-inside mt-2 space-y-1">
+                <li><strong>Timestamp:</strong> cuándo exactamente ocurrió el acceso (zona horaria UTC)</li>
+                <li><strong>Usuario:</strong> email del usuario autenticado (ligado a lake_users)</li>
+                <li><strong>Rol:</strong> con qué rol accedió (admin, data_engineer, analyst, etc.)</li>
+                <li><strong>Acción:</strong> SELECT (consulta), INSERT (carga), EXPORT (descarga), UPDATE, DELETE</li>
+                <li><strong>Tabla:</strong> schema.tabla que fue accedida</li>
+                <li><strong>Filas:</strong> cuántas filas fueron afectadas — un EXPORT de 10,000 filas es diferente de un SELECT de 5</li>
+                <li><strong>IP:</strong> dirección IP desde donde se conectó — ayuda a detectar accesos desde ubicaciones no autorizadas</li>
+              </ul>
+            </PedagogicalNote>
+
+            <PedagogicalNote title="¿Quién descargó (EXPORT) datos? ¿Es preocupante?" type="exercise" defaultOpen={false}>
+              <p>
+                Revisa la tabla de abajo y busca acciones de tipo <span className="px-2 py-0.5 bg-purple-900/50 text-purple-400 rounded text-xs font-medium">EXPORT</span>.
+              </p>
+              <p className="mt-2">
+                Preguntas para analizar:
+              </p>
+              <ul className="list-disc list-inside mt-2 space-y-1">
+                <li>¿Quién hizo el EXPORT? ¿Su rol tiene autorización para descargar datos de esa tabla?</li>
+                <li>¿De qué tabla descargó? Si es una tabla con PII (ej. datos personales), ¿está justificado?</li>
+                <li>¿Cuántas filas descargó? Un EXPORT masivo de una tabla confidencial debería activar una alerta</li>
+                <li>¿A qué hora lo hizo? Un EXPORT fuera de horario laboral es una señal de alerta (red flag)</li>
+              </ul>
+              <p className="mt-2">
+                En un sistema real, estos patrones se detectan con <strong>SIEM</strong> (Security Information and Event Management).
+              </p>
+            </PedagogicalNote>
 
             <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
               <div className="overflow-x-auto">
@@ -757,14 +1050,50 @@ export default function Home() {
               <span className="text-slate-500 text-sm">{users.length} usuarios</span>
             </div>
 
-            <div className="bg-cyan-950/20 border border-cyan-900/30 rounded-xl p-4 mb-6">
-              <p className="text-cyan-300 text-sm">
-                <strong>Control de acceso por rol (RBAC).</strong> Cada usuario tiene un rol que determina qué zonas del
-                Lake puede acceder. <code className="bg-slate-800 px-1 rounded">data_engineer</code> → Bronze+Silver+Gold.{' '}
-                <code className="bg-slate-800 px-1 rounded">data_scientist</code> → Silver (masked)+Gold.{' '}
-                <code className="bg-slate-800 px-1 rounded">analyst</code> → Solo Gold.
+            <PedagogicalNote title="Principio de mínimo privilegio" type="governance" defaultOpen={true}>
+              <p>
+                Cada usuario recibe el <strong>mínimo acceso necesario</strong> para hacer su trabajo. Un analista de negocio
+                solo necesita Gold (datos agregados listos para consumo). Darle acceso a Bronze sería un riesgo:
+                podría ver datos crudos con PII sin enmascarar, o construir reportes con datos sucios.
               </p>
-            </div>
+              <p className="mt-2">
+                Este principio es un pilar de seguridad de la información (ISO 27001) y de gobernanza de datos (DAMA-DMBOK2).
+                Si un usuario cambia de rol, sus permisos deben actualizarse inmediatamente.
+              </p>
+            </PedagogicalNote>
+
+            <PedagogicalNote title="RBAC — Control de Acceso Basado en Roles" type="concept" defaultOpen={false}>
+              <p>
+                <strong>RBAC</strong> (Role-Based Access Control) asigna permisos a <strong>roles</strong>, no a usuarios individuales.
+                Esto simplifica la administración: en vez de configurar permisos para 500 usuarios, defines 4 roles y asignas cada usuario a uno.
+              </p>
+              <ul className="list-disc list-inside mt-2 space-y-1">
+                <li><code className="bg-slate-800 px-1 rounded">admin</code> — acceso total + gestión de usuarios y políticas</li>
+                <li><code className="bg-slate-800 px-1 rounded">data_engineer</code> — Bronze (R/W) + Silver (R/W) + Gold (R) — construye y mantiene pipelines</li>
+                <li><code className="bg-slate-800 px-1 rounded">data_scientist</code> — Silver masked (R) + Gold (R) + Sandbox (R/W) — analiza datos sin ver PII</li>
+                <li><code className="bg-slate-800 px-1 rounded">analyst</code> — Gold (R) — solo consume datos limpios y agregados</li>
+              </ul>
+              <p className="mt-2">
+                En Supabase, esto se implementa con <strong>Row Level Security (RLS)</strong> — PostgreSQL evalúa el rol del usuario
+                en cada consulta y filtra las filas automáticamente.
+              </p>
+            </PedagogicalNote>
+
+            <PedagogicalNote title="Enmascaramiento PII (PII Masking)" type="concept" defaultOpen={false}>
+              <p>
+                Los data scientists necesitan acceder a datos de Silver para entrenar modelos, pero <strong>no necesitan ver datos personales</strong>.
+                El enmascaramiento (masking) reemplaza parte del dato sensible con asteriscos:
+              </p>
+              <ul className="list-disc list-inside mt-2 space-y-1">
+                <li>NIT: <code className="bg-slate-800 px-1 rounded">900123456</code> → <code className="bg-slate-800 px-1 rounded">900****56</code></li>
+                <li>Email: <code className="bg-slate-800 px-1 rounded">juan@empresa.com</code> → <code className="bg-slate-800 px-1 rounded">j***@empresa.com</code></li>
+                <li>Cédula: <code className="bg-slate-800 px-1 rounded">1017234567</code> → <code className="bg-slate-800 px-1 rounded">1017****67</code></li>
+              </ul>
+              <p className="mt-2">
+                En este Lake, existe una vista <code className="bg-slate-800 px-1 rounded">silver_ventas_masked</code> que los
+                data scientists ven en lugar de la tabla real. El dato original nunca sale de Silver.
+              </p>
+            </PedagogicalNote>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {users.map((u) => (
@@ -824,6 +1153,57 @@ export default function Home() {
         {activeTab === 'architecture' && (
           <div>
             <h2 className="text-xl font-bold mb-6">Arquitectura del Data Lake</h2>
+
+            <PedagogicalNote title="Stack tecnológico" type="concept" defaultOpen={true}>
+              <p>
+                Este Data Lake usa <strong>Supabase</strong> como backend porque es un <strong>PostgreSQL real</strong> con
+                Row Level Security (RLS) nativo — no es un simulador, es la misma tecnología que usan empresas en producción.
+                Supabase además provee Auth, Storage y APIs automáticas.
+              </p>
+              <p className="mt-2">
+                <strong>Vercel</strong> despliega la app en el edge (CDN global) con Next.js 14. La combinación
+                Supabase + Vercel permite tener un Data Lake funcional con gobernanza real en minutos, sin infraestructura propia.
+              </p>
+            </PedagogicalNote>
+
+            <PedagogicalNote title="DAMA-DMBOK2 — Áreas de conocimiento implementadas" type="governance" defaultOpen={false}>
+              <p>
+                DAMA-DMBOK2 define <strong>11 áreas de conocimiento</strong> en gestión de datos. Este proyecto implementa varias:
+              </p>
+              <ul className="list-disc list-inside mt-2 space-y-1">
+                <li><strong>Data Governance:</strong> políticas, roles, clasificación, catálogo obligatorio</li>
+                <li><strong>Data Quality:</strong> quality scores, validación en Silver, métricas de completitud</li>
+                <li><strong>Data Security:</strong> RLS, RBAC, enmascaramiento PII, cifrado TLS + AES-256</li>
+                <li><strong>Data Architecture:</strong> arquitectura Medallion (Bronze → Silver → Gold)</li>
+                <li><strong>Data Integration:</strong> pipelines Bronze → Silver con transformaciones SQL</li>
+                <li><strong>Metadata Management:</strong> catálogo de datos con metadatos de ingestión</li>
+                <li><strong>Data Storage:</strong> PostgreSQL con JSONB (Bronze) y tablas tipadas (Silver/Gold)</li>
+              </ul>
+              <p className="mt-2">
+                Las áreas no implementadas (Master Data, Data Warehousing, Document/Content, Reference Data) son oportunidades
+                para extender el proyecto.
+              </p>
+            </PedagogicalNote>
+
+            <PedagogicalNote title="¿Por qué PostgreSQL y no S3 + Spark?" type="why" defaultOpen={false}>
+              <p>
+                En producción, un Data Lake típicamente usa <strong>S3</strong> (almacenamiento) + <strong>Spark</strong> (procesamiento)
+                + <strong>Delta Lake/Iceberg</strong> (formato). Entonces, ¿por qué usamos PostgreSQL?
+              </p>
+              <p className="mt-2">
+                Para enseñanza, PostgreSQL tiene ventajas importantes:
+              </p>
+              <ul className="list-disc list-inside mt-2 space-y-1">
+                <li><strong>Mismo SQL:</strong> las consultas Bronze → Silver → Gold son las mismas que escribirías en Spark SQL o dbt</li>
+                <li><strong>RLS nativo:</strong> S3 no tiene seguridad a nivel de fila — PostgreSQL sí, sin configurar herramientas extra</li>
+                <li><strong>Cero infraestructura:</strong> Supabase es gratis, no necesitas AWS/GCP/Azure</li>
+                <li><strong>Mismos conceptos:</strong> JSONB = schema-on-read (como Parquet), vistas materializadas = Gold layer, triggers = CDC</li>
+              </ul>
+              <p className="mt-2">
+                Los conceptos de gobernanza (catálogo, clasificación, RBAC, auditoría, quality scores) son <strong>idénticos</strong>
+                independientemente de si usas PostgreSQL, Databricks o Snowflake.
+              </p>
+            </PedagogicalNote>
 
             {/* Medallion flow */}
             <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 mb-6">
